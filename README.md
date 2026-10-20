@@ -1,4 +1,4 @@
-# Mixtral-Style Mixture-of-Experts Transformer — From Scratch in PyTorch
+# Mixtral-Style Mixture-of-Experts Transformer - From Scratch in PyTorch
 
 **Research-oriented implementation and training experiment** with sparse Mixture-of-Experts (MoE) routing, Grouped-Query Attention (GQA), Rotary Positional Embeddings (RoPE), sliding-window causal attention, RMSNorm, and SwiGLU experts. The model is trained from randomly initialized weights on **FineWeb-Edu** using an **NVIDIA A100 SXM (80 GB)**.
 
