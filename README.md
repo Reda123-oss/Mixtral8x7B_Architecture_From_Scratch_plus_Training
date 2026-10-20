@@ -1,4 +1,4 @@
-# Mixtral-Style Mixture-of-Experts Transformer - From Scratch in PyTorch
+# Mixtral-Style Mixture-of-Experts Transformer — From Scratch in PyTorch
 
 **Research-oriented implementation and training experiment** with sparse Mixture-of-Experts (MoE) routing, Grouped-Query Attention (GQA), Rotary Positional Embeddings (RoPE), sliding-window causal attention, RMSNorm, and SwiGLU experts. The model is trained from randomly initialized weights on **FineWeb-Edu** using an **NVIDIA A100 SXM (80 GB)**.
 
@@ -11,6 +11,7 @@
 - BF16 mixed precision, fused AdamW when available, cosine learning-rate decay and gradient clipping.
 - On-disk token cache, shuffled multiworker batches, gradient accumulation, and periodic resumable checkpoints.
 - Logged training loss decreases from **19.9121 (epoch 1)** to **3.3746 (epoch 15)**; a subsequent **partial epoch 16** reading is **3.0703**. These are the reported *progress-bar losses*, not independently computed epoch means.
+- **Run interrupted by full disk (100% utilization):** the latest available model state was recovered despite the training interruption.
 
 ## Architecture
 
@@ -73,6 +74,25 @@ The graph reproduces the available logged **training loss** readings. Epoch 14 i
 | 16 | 3.0703 | **Partial (53%)** |
 
 The final partial reading is about **84.6% below the epoch-1 reported reading**. These values show improvement on the training objective, **not** verified generalization or factual correctness. The first very high reading may reflect different training dynamics than later readings.
+
+## Training interruption, recovery, and compute cost
+
+**Training did not finish as planned.** During the paid NVIDIA A100 experiment, the runtime disk reached **100% utilization**, leaving no free storage for additional checkpoints or other outputs. Training consequently stopped because of **storage exhaustion**, not because the model had converged or met a defined evaluation target.
+
+Despite the interruption, I managed to **recover the latest available updated model state**. This preserved the progress achieved up to the interruption, although it does not imply that the intended training schedule was completed or that all optimizer/scheduler state was recoverable.
+
+| Resource / outcome | Reported detail |
+|---|---|
+| Accelerator | Paid NVIDIA A100 SXM, 80 GB VRAM |
+| GPU training time | Approximately **4–5 hours** (user-reported estimate) |
+| Compute cost | Approximately **US$10** consumed |
+| Interruption | Runtime disk reached **100% capacity** |
+| Checkpoint recovery | Latest available updated model state recovered |
+| Final status | **Interrupted — not a completed training run** |
+
+**Cost and runtime note:** The time and expense above are approximate user-reported figures, not independently verified billing metrics. The epoch durations in the logs cover individual training epochs and do not by themselves establish total wall-clock compute usage.
+
+**Practical lesson:** GPU VRAM availability does not guarantee enough **persistent disk space**. Token caches, dataset artifacts, checkpoint snapshots, and optimizer state can occupy substantial storage. Future runs should monitor disk usage (`df -h` on Linux), enforce a checkpoint-retention policy, and periodically copy recoverable checkpoints to separate persistent storage before the volume becomes full.
 
 ## Generated samples: qualitative observations
 
@@ -176,4 +196,4 @@ Suggested references:
 
 ---
 
-**Project status:** Experimental from-scratch training study. The attached notebook and reported metrics document the observed run; additional held-out evaluation and independent benchmarking are future work.
+**Project status:** Experimental from-scratch training study, **interrupted by full disk capacity**, with the latest available model state recovered. The attached notebook and reported metrics document the observed run; additional held-out evaluation and independent benchmarking are future work.
